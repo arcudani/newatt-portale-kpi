@@ -1,0 +1,32 @@
+# Segreti e ambienti locali — MAI nel repo
+app/.env
+.env
+*.env
+app/.venv/
+.venv/
+.streamlit/secrets.toml
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Dati (GDPR / riservatezza Migliora: nessun numero del BP nel repo;
+# i dati stanno su Supabase e si leggono a runtime)
+*.xlsx
+*.xls
+*.xlsm
+*.pdf
+*.csv
+*.zip
+_dev_data/
+
+# Log e artefatti locali
+_logs/
+app/_logs/
+*.log
+
+# Editor / sistema
+.claude/
+desktop.ini
+Thumbs.db

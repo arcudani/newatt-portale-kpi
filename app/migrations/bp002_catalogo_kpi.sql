@@ -1,0 +1,136 @@
+-- ============================================================
+-- Migrazione bp002 — seme del catalogo KPI (blueprint 3-30-300 v1.0, §6).
+--
+-- Il catalogo è la fonte unica di nome, definizione, direzione, owner,
+-- soglie e visibilità: le tessere delle viste si generano da qui. Le soglie
+-- sono la proposta di partenza del blueprint (punto aperto 5): gialla 5%,
+-- rossa 10% sulle grandezze economiche; sulle percentuali sono punti %.
+-- Owner = ruoli generici finché Migliora/NeWatt non indica i nominativi
+-- (punto aperto 6). Idempotente: ON CONFLICT DO NOTHING (non sovrascrive
+-- le modifiche fatte a mano sul DB).
+-- ============================================================
+
+insert into public.bp_kpi_catalogo
+    (codice, nome, livello, vista, ordine, definizione, unita, direzione, owner,
+     fonte, stato, fonte_prevista, rif_ded, benchmark, soglia_gialla, soglia_rossa,
+     visibilita, drill)
+values
+-- ---------- L3 — Cruscotto Direzione (V1) ----------
+('L3_RICAVI', 'Ricavi', 3, 'V1', 1,
+ 'Somma dei ricavi del periodo. Con il consuntivo (fase 3): mesi chiusi vs BP degli stessi mesi.',
+ '€', 1, 'CFO', 'BP + CONS', 'attivo', '', '', '', 5, 10, 'tutti', 'V2'),
+('L3_EBITDA', 'EBITDA', 3, 'V1', 2,
+ 'EBITDA del periodo; nel sottotitolo l''EBITDA % sui ricavi.',
+ '€', 1, 'CFO', 'BP + CONS', 'attivo', '', 'ECO-06', '', 5, 10, 'tutti', 'V2'),
+('L3_UTILE', 'Risultato netto', 3, 'V1', 3,
+ 'Utile dopo imposte. IRES e IRAP sono di competenza annuale e il BP le imputa a dicembre.',
+ '€', 1, 'CFO', 'BP + CONS', 'attivo', '', '', '', 5, 10, 'tutti', 'V2'),
+('L3_FORECAST', 'Forecast EBITDA anno', 3, 'V1', 4,
+ 'Consuntivo YTD + BP dei mesi residui. Senza consuntivo coincide con il BP dell''anno.',
+ '€', 1, 'CFO', 'BP + CONS', 'attivo', '', '', '', 5, 10, 'tutti', 'V2'),
+('L3_PDP', 'PdP attivi', 3, 'V1', 5,
+ 'POD + PDR attivi a fine periodo (canale Agenti); nel sottotitolo i net adds del periodo.',
+ 'N.', 1, 'Dir. Commerciale', 'BP (+OPER)', 'attivo', '', 'SAL-01', '', 5, 10, 'tutti', 'V3'),
+('L3_MIX', 'Mix Retail', 3, 'V1', 6,
+ 'Quota dei PdP Retail sul totale a fine periodo (il resto è Business).',
+ '%', 0, 'Dir. Commerciale', 'BP (+OPER)', 'attivo', '', 'SAL-02', '80/20 (DeD)', 3, 6, 'tutti', 'V3'),
+('L3_CTS', 'Cost-to-Serve', 3, 'V1', 7,
+ 'Costi operativi (marketing, servizi generali incluso il contratto NeWatt, godimento beni di terzi, personale operativo) / PdP attivi medi, annualizzato.',
+ '€/PdP', -1, 'COO', 'BP + CONS', 'attivo', '', 'OPS-01', '10-15 € best-in-class (DeD)', 5, 10, 'tutti', 'V5'),
+('L3_MARGINE_UNIT', 'Margine unitario', 3, 'V1', 8,
+ 'EBITDA / PdP attivi medi, annualizzato (proxy ECO-01).',
+ '€/PdP', 1, 'CFO', 'BP + CONS', 'attivo', '', 'ECO-01', '', 5, 10, 'tutti', 'V2'),
+('L3_CHURN', 'Churn LTM', 3, 'V1', 9,
+ 'Cessati degli ultimi 12 mesi / base attiva media degli ultimi 12 mesi. In v1 è l''ipotesi del BP: il churn reale arriva dai dati operativi.',
+ '%', -1, 'Retention', 'OPER', 'segnaposto', 'CRM / billing (fase 4)', 'CLI-03', '', 3, 6, 'tutti', 'V3'),
+
+-- ---------- L30 — V2 Economico ----------
+('V2_FATTURATO', 'Fatturato', 30, 'V2', 1, 'Ricavi totali del periodo.',
+ '€', 1, 'CFO', 'BP + CONS', 'attivo', '', '', '', 5, 10, 'tutti', ''),
+('V2_COSTO_APPR', 'Costo approvvigionamento', 30, 'V2', 2, 'Costo della materia prima Power e Gas (quota energia e quota fissa).',
+ '€', -1, 'CFO', 'BP + CONS', 'attivo', '', '', '', 5, 10, 'tutti', ''),
+('V2_PM_PCT', 'Primo margine lordo %', 30, 'V2', 3, '(Ricavi − costo approvvigionamento) / ricavi.',
+ '%', 1, 'CFO', 'BP + CONS', 'attivo', '', 'ECO-03', '', 3, 6, 'tutti', ''),
+('V2_PROVV_PM', 'Provvigioni su PM lordo', 30, 'V2', 4, 'Provvigioni (una tantum + ricorrenti + ENASARCO) / primo margine lordo.',
+ '%', -1, 'CFO', 'BP + CONS', 'attivo', '', '', '', 3, 6, 'tutti', ''),
+('V2_COSTI_GEN', 'Costi generali', 30, 'V2', 5, 'Marketing + servizi generali + godimento beni di terzi.',
+ '€', -1, 'CFO', 'BP + CONS', 'attivo', '', '', '', 5, 10, 'tutti', ''),
+('V2_EBITDA', 'EBITDA', 30, 'V2', 6, 'EBITDA del periodo; nel sottotitolo l''EBITDA % sui ricavi.',
+ '€', 1, 'CFO', 'BP + CONS', 'attivo', '', 'ECO-06', '', 5, 10, 'tutti', ''),
+
+-- ---------- L30 — V3 Commerciale Agenti ----------
+('V3_PRODUZIONE', 'Produzione lorda', 30, 'V3', 1,
+ 'Contratti prodotti nel periodo. In v1 produzione = attivati: il BP non distingue firmati e attivati.',
+ 'N.', 1, 'Dir. Commerciale', 'BP (+OPER)', 'attivo', '', 'SAL-04 / SAL-05', '', 5, 10, 'tutti', ''),
+('V3_PDP', 'PdP attivi', 30, 'V3', 2, 'POD + PDR attivi a fine periodo.',
+ 'N.', 1, 'Dir. Commerciale', 'BP (+OPER)', 'attivo', '', 'SAL-01', '', 5, 10, 'tutti', ''),
+('V3_SWITCH_OUT', 'Switch-out', 30, 'V3', 3, 'Cessazioni del periodo.',
+ 'N.', -1, 'Dir. Commerciale', 'BP (+OPER)', 'attivo', '', 'CLI-03', '', 5, 10, 'tutti', ''),
+('V3_NET_ADDS', 'Net adds', 30, 'V3', 4, 'Produzione − cessazioni del periodo.',
+ 'N.', 1, 'Dir. Commerciale', 'BP (+OPER)', 'attivo', '', '', '', 5, 10, 'tutti', ''),
+('V3_AVANZAMENTO', 'Avanzamento target annuo', 30, 'V3', 5,
+ 'Produzione del periodo / produzione dell''anno intero della versione di riferimento.',
+ '%', 1, 'Dir. Commerciale', 'BP (+OPER)', 'attivo', '', 'SAL-12', '', 3, 6, 'tutti', ''),
+('V3_CAC', 'CAC per PdP attivato', 30, 'V3', 6,
+ '(Provvigioni una tantum + spese point) / produzione del periodo.',
+ '€/PdP', -1, 'Dir. Commerciale', 'BP + CONS', 'attivo', '', 'SAL-10', '', 5, 10, 'tutti', ''),
+
+-- ---------- L30 — V4 VAS ----------
+('V4_VAS_ATTIVI', 'VAS attivi', 30, 'V4', 1,
+ 'Punti con VAS a fine periodo (Assicurazione + Manutenzione + Telecomunicazioni).',
+ 'N.', 1, 'Resp. VAS', 'BP (+OPER)', 'attivo', '', '', '', 5, 10, 'tutti', ''),
+('V4_PENETRAZIONE', 'Penetrazione VAS', 30, 'V4', 2,
+ 'Punti con VAS / PdP attivi a fine periodo (obiettivo commerciale BP 26-27: 45%).',
+ '%', 1, 'Resp. VAS', 'BP (+OPER)', 'attivo', '', 'ECO-04', '45% (BP 26-27 v2)', 3, 6, 'tutti', ''),
+('V4_EXTRA_PROFITTO', 'Extra-profitto VAS', 30, 'V4', 3, 'Margine VAS Power + Gas del periodo.',
+ '€', 1, 'Resp. VAS', 'BP + CONS', 'attivo', '', 'ECO-01', '', 5, 10, 'tutti', ''),
+('V4_MARGINE_MEDIO', 'Margine VAS per punto', 30, 'V4', 4,
+ 'Extra-profitto / VAS attivi medi, annualizzato.',
+ '€/punto', 1, 'Resp. VAS', 'BP + CONS', 'attivo', '', '', '', 5, 10, 'tutti', ''),
+('V4_COSTI_VAS', 'Costi VAS', 30, 'V4', 5, 'Costi diretti e di erogazione del canale VAS (oggi 0 nel BP).',
+ '€', -1, 'Resp. VAS', 'CONS', 'segnaposto', 'contabilità / fornitori VAS', '', '', 5, 10, 'tutti', ''),
+
+-- ---------- L30 — V5 Operations & Servizio ----------
+('V5_CTS', 'Cost-to-Serve', 30, 'V5', 1,
+ 'Costi operativi / PdP attivi medi, annualizzato (stessa definizione del Cruscotto).',
+ '€/PdP', -1, 'COO', 'BP + CONS', 'attivo', '', 'OPS-01', '10-15 € best-in-class (DeD)', 5, 10, 'tutti', ''),
+('V5_NEWATT_PUNTO', 'Contratto NeWatt per punto', 30, 'V5', 2,
+ 'Costo del contratto di servizio intragruppo / PdP attivi medi, annualizzato.',
+ '€/PdP', -1, 'COO', 'BP + CONS', 'attivo', '', 'OPS-03', '', 5, 10, 'bros', ''),
+('V5_FTE_CC', 'FTE Customer Care', 30, 'V5', 3,
+ 'FTE necessari da driver (media del periodo) vs FTE pianificati nel foglio Personale (Servizio clienti).',
+ 'FTE', 0, 'COO', 'BP', 'attivo', '', '', '', 5, 10, 'tutti', ''),
+('V5_FTE_OP', 'FTE Operation', 30, 'V5', 4,
+ 'FTE necessari da driver (media del periodo) vs FTE pianificati (Operation, Operation VAS, Fatturazione, Credito).',
+ 'FTE', 0, 'COO', 'BP', 'attivo', '', '', '', 5, 10, 'tutti', ''),
+('V5_COSTO_FTE', 'Costo personale per FTE', 30, 'V5', 5,
+ 'Costo del personale operativo / FTE pianificati medi, annualizzato.',
+ '€/FTE', -1, 'COO', 'BP + CONS', 'attivo', '', '', '', 5, 10, 'tutti', ''),
+('V5_PERDITE', 'Perdite su crediti', 30, 'V5', 6,
+ 'Perdite su crediti e accantonamenti / ricavi.',
+ '%', -1, 'CFO', 'BP + CONS', 'attivo', '', 'CLI-05 (proxy)', '', 3, 6, 'tutti', ''),
+('V5_PUNT_SWITCH', 'Puntualità switch-in', 30, 'V5', 7, 'Switch-in completati entro la data prevista.',
+ '%', 1, 'COO', 'OPER', 'segnaposto', 'workflow switching', 'OPS-04', '', 3, 6, 'tutti', ''),
+('V5_FATT_ONTIME', 'Fatture on-time', 30, 'V5', 8, 'Fatture emesse entro la scadenza di ciclo.',
+ '%', 1, 'COO', 'OPER', 'segnaposto', 'billing', 'OPS-06', '', 3, 6, 'tutti', ''),
+('V5_RECLAMI', 'Reclami per 1.000 clienti', 30, 'V5', 9, 'Reclami del periodo ogni 1.000 PdP attivi.',
+ '‰', -1, 'COO', 'OPER', 'segnaposto', 'CRM reclami', 'OPS-08', '', 5, 10, 'tutti', ''),
+('V5_TTA', 'Time-to-activate', 30, 'V5', 10, 'Giorni dalla firma all''attivazione della fornitura.',
+ 'giorni', -1, 'COO', 'OPER', 'segnaposto', 'workflow switching', 'OPS-03', '', 5, 10, 'tutti', ''),
+
+-- ---------- L300 — segnaposto DeD ----------
+('V7_PERF_SPORTELLO', 'Attivati per FTE di sportello', 300, 'V7', 1,
+ 'Performance per sportello / agente.', 'N.', 1, 'Dir. Commerciale', 'OPER', 'segnaposto',
+ 'CRM agenzie', 'SAL-14', '', 5, 10, 'bros', ''),
+('V7_COORTI', 'Retention per coorte', 300, 'V7', 2,
+ 'Curva di sopravvivenza BP vs actual per coorte di acquisizione.', '%', 1, 'Retention', 'BP (+OPER)', 'segnaposto',
+ 'CRM / billing (fase 2)', 'CLI-07', '', 3, 6, 'tutti', ''),
+('V9_SDD', 'Clienti su SDD', 300, 'V9', 1, 'Quota di clienti con addebito diretto.',
+ '%', 1, 'COO', 'OPER', 'segnaposto', 'billing', 'CLI-08', '', 3, 6, 'tutti', ''),
+('V9_BACKLOG', 'Backlog reclami', 300, 'V9', 2, 'Reclami aperti oltre i tempi ARERA.',
+ 'N.', -1, 'COO', 'OPER', 'segnaposto', 'CRM reclami', 'OPS-10', '', 5, 10, 'tutti', ''),
+('V9_FCR', 'First contact resolution', 300, 'V9', 3, 'Contatti risolti al primo contatto.',
+ '%', 1, 'COO', 'OPER', 'segnaposto', 'ticketing', 'OPS-09', '', 3, 6, 'tutti', ''),
+('V9_ACCURATEZZA', 'Accuratezza fatturazione', 300, 'V9', 4, 'Fatture senza rettifica.',
+ '%', 1, 'COO', 'OPER', 'segnaposto', 'billing', 'OPS-12', '', 3, 6, 'tutti', '')
+on conflict (codice) do nothing;

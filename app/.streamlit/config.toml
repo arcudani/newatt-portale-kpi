@@ -1,0 +1,22 @@
+# Configurazione Streamlit (tema NeWatt del Portale KPI + deploy)
+# Letto da Streamlit Community Cloud (radice repo) e in locale (app\).
+# Il design system vero è il CSS di branding.py: qui solo i colori dei widget
+# nativi (slider, checkbox, focus, selezioni) perché non restino nel rosso Bros.
+
+[theme]
+primaryColor = "#0000FF"        # blu NeWatt
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F4F6FB"
+textColor = "#14162B"           # inchiostro NeWatt
+font = "sans serif"
+
+[client]
+toolbarMode = "minimal"         # niente «Deploy» nella barra in alto
+
+[server]
+headless = true
+enableXsrfProtection = true
+enableCORS = false
+
+[browser]
+gatherUsageStats = false
