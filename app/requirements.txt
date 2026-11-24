@@ -1,5 +1,5 @@
-# Dipendenze Controllo BP Migliora (versioni minime che coprono le API usate)
-streamlit>=1.45                 # st.navigation/st.Page, st.logo, width="stretch"
+# Dipendenze Portale KPI NeWatt (versioni minime che coprono le API usate)
+streamlit>=1.63                 # st.navigation(expanded), MultiselectColumn, data_editor(placeholder)
 pandas>=2.2
 openpyxl>=3.1.2                 # import del BP Excel + export tabelle
 python-dotenv>=1.0.1            # .env locale

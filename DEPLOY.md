@@ -1,51 +1,48 @@
-# Deploy — Controllo BP Migliora su Streamlit Community Cloud
+# Deploy — Portale KPI NeWatt su Streamlit Community Cloud
 
-Da fare **solo dopo conferma** (ogni push su `main` rideploya).
+Repo **privato** `arcudani/newatt-portale-kpi`, app **pubblica** su Community Cloud (il piano
+gratuito ammette una sola app privata, già usata da `bros-erp`; un'app pubblica da repo privato
+non la occupa). «Pubblica» vuol dire solo che l'URL è raggiungibile: senza username e password
+non si vede nulla (login su `kpi_utenti`).
 
-## 0. Decisione preliminare: repo privato o pubblico
+Ogni push su `main` rideploya l'app: **mai push senza conferma**.
 
-Community Cloud (piano gratuito) consente **una sola app da repo privato**, già usata da `bros-erp`
-(per questo `gas-monitor` è pubblico). Opzioni:
+## 1. Segreti
 
-- **Repo pubblico** `arcudani/migliora-bp`: il codice non contiene numeri del BP (stanno su
-  Supabase, test su dati fittizi), ma sono visibili struttura delle voci e catalogo KPI;
-- **Workspace/piano che ammette più app private**, oppure un altro hosting.
-
-## 1. Repository GitHub
+Da `app\`:
 
 ```powershell
-cd C:\Code\Migliora_BP
-git status          # verificare che .env, .venv, *.xlsx NON siano tracciati
-git add -A
-git commit -m "Controllo BP Migliora: fase 1 (lettura)"
-gh repo create arcudani/migliora-bp --private --source . --push    # o --public (vedi §0)
+.venv\Scripts\python.exe _logs\genera_secrets_scc.py
 ```
 
-## 2. App su share.streamlit.io
-
-- New app → repo `arcudani/migliora-bp`, branch `main`, main file **`app/app.py`**, Python 3.12.
-- Settings → Secrets (TOML):
+Scrive `app\_logs\secrets_scc.toml` (gitignored) dal `.env` locale con python-dotenv:
 
 | Chiave | Note |
 |---|---|
-| `SUPABASE_DB_URL` | stessa delle altre app (Transaction pooler) |
-| `AUTH_COOKIE_KEY` | chiave NUOVA e propria (`python -c "import secrets;print(secrets.token_hex(32))"`) |
+| `NEWATT_DB_URL` | utente `kpi_portale` sul Transaction pooler di cte-newatt (solo tabelle `kpi_*`) |
+| `SUPABASE_DB_URL` | DB bros-consulenza, solo per la sezione BP Migliora (admin) |
+| `AUTH_COOKIE_KEY` | **nuova** a ogni generazione (cookie di produzione separato dal locale) |
+| `BREVO_LOGIN`, `BREVO_SMTP_KEY` | SMTP Brevo, le stesse di Bros_ERP |
+| `MAIL_FROM` | `Portale KPI NeWatt <energia@brosconsulenza.com>` (mittente verificato su Brevo) |
+| `PORTALE_URL` | `https://newatt-portale-kpi.streamlit.app` (link nelle email di invito) |
 
-## 3. Utenti e prima versione
+Incollare il TOML in SCC e poi **cancellare il file locale**.
 
-1. `python imposta_pwd.py <Nome> --ruolo admin --societa Bros` (password digitata dall'utente, mai in chat).
-2. Login → **Versioni** → controllare la quadratura di "BP v5 FTE" → **Approva** (solo dopo, il viewer
-   NeWatt vede la dashboard).
-3. Utenti NeWatt: `python imposta_pwd.py <Nome> --ruolo viewer --societa NeWatt`.
+## 2. App su share.streamlit.io
 
-## 4. Collegamento dall'ERP
+Create app → *Deploy a public app from GitHub*:
 
-Nei secrets dell'ERP aggiungere `MIGLIORA_APP_URL = "<url SCC>"`: la tile Migliora (solo admin)
-mostra il pulsante di apertura.
+- Repository `arcudani/newatt-portale-kpi`, branch `main`, main file **`app/app.py`**;
+- App URL: `newatt-portale-kpi` (deve combaciare con `PORTALE_URL`);
+- Advanced settings → Python **3.12**, Secrets = contenuto di `secrets_scc.toml`.
 
-## 5. Verifiche post-deploy
+Le dipendenze si installano da `requirements.txt` in radice (delega a `app/requirements.txt`).
 
-1. URL → form di login con titolo "Controllo BP Migliora".
-2. Login admin → Cruscotto con badge stato dati (quadratura OK 95/95).
-3. Login viewer → solo versioni approvate, niente Consuntivo né KPI riservati (contratto NeWatt).
-4. Logout e re-login (cookie `bros_migliora_auth`).
+## 3. Verifiche post-deploy
+
+1. URL → schermata di login NeWatt con i tre loghi.
+2. Login admin → Panoramica gruppo; Gazel → Livello I e II con i dati caricati.
+3. Amministrazione → Utenti e accessi: creare un utente di prova con la propria email → arriva
+   l'email da energia@ con il link `https://newatt-portale-kpi.streamlit.app/?invito=…` → scegliere
+   la password → login con il perimetro giusto (es. solo Gazel) → disattivare l'utente di prova.
+4. Logout e re-login (cookie `newatt_kpi_auth`).
