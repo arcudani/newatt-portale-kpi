@@ -24,7 +24,7 @@ Scrive `app\_logs\secrets_scc.toml` (gitignored) dal `.env` locale con python-do
 | `AUTH_COOKIE_KEY` | **nuova** a ogni generazione (cookie di produzione separato dal locale) |
 | `BREVO_LOGIN`, `BREVO_SMTP_KEY` | SMTP Brevo, le stesse di Bros_ERP |
 | `MAIL_FROM` | `Portale KPI NeWatt <energia@brosconsulenza.com>` (mittente verificato su Brevo) |
-| `PORTALE_URL` | `https://newatt-portale-kpi.streamlit.app` (link nelle email di invito) |
+| `PORTALE_URL` | `https://newatt-kpi.streamlit.app` (link nelle email di invito) |
 
 Incollare il TOML in SCC e poi **cancellare il file locale**.
 
@@ -33,7 +33,7 @@ Incollare il TOML in SCC e poi **cancellare il file locale**.
 Create app → *Deploy a public app from GitHub*:
 
 - Repository `arcudani/newatt-portale-kpi`, branch `main`, main file **`app/app.py`**;
-- App URL: `newatt-portale-kpi` (deve combaciare con `PORTALE_URL`);
+- App URL: `newatt-kpi` (deve combaciare con `PORTALE_URL`; Streamlit vieta la parola «portal» nei sottodomini);
 - Advanced settings → Python **3.12**, Secrets = contenuto di `secrets_scc.toml`.
 
 Le dipendenze si installano da `requirements.txt` in radice (delega a `app/requirements.txt`).
@@ -43,6 +43,6 @@ Le dipendenze si installano da `requirements.txt` in radice (delega a `app/requi
 1. URL → schermata di login NeWatt con i tre loghi.
 2. Login admin → Panoramica gruppo; Gazel → Livello I e II con i dati caricati.
 3. Amministrazione → Utenti e accessi: creare un utente di prova con la propria email → arriva
-   l'email da energia@ con il link `https://newatt-portale-kpi.streamlit.app/?invito=…` → scegliere
+   l'email da energia@ con il link `https://newatt-kpi.streamlit.app/?invito=…` → scegliere
    la password → login con il perimetro giusto (es. solo Gazel) → disattivare l'utente di prova.
 4. Logout e re-login (cookie `newatt_kpi_auth`).
