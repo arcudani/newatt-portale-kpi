@@ -59,6 +59,7 @@ except Exception as e:  # noqa: BLE001
     st.stop()
 per_username = {r["username"]: r for r in righe}
 NOMI_SOCIETA = {s: kc.SOCIETA[s] for s in kc.ORDINE_SOCIETA}
+NOMI_BREVI = {"lifegate": "LifeGate", "gazel": "Gazel", "migliora": "Migliora"}   # tabella compatta
 
 # ---------------------------------------------------------------- nuovo utente
 with st.container(key="panel_nuovo_utente"):
@@ -115,21 +116,24 @@ with st.container(key="panel_utenti"):
         "Attivo": bool(r["attivo"]),
         "Accesso": utenti.stato_accesso(bool(r["ha_password"]), r if r.get("scade_il") else None),
     } for r in righe]).set_index("username")
+    # colonne strette e l'email per ultima: con lo zoom del browser le colonne
+    # che contano (società, attivo, accesso) restano visibili
     modificata = st.data_editor(
         tabella, key="ut_editor", num_rows="fixed", width="stretch", disabled=["Accesso"],
+        column_order=["Nome", "Profilo", "Società", "Attivo", "Accesso", "Email"],
         column_config={
-            "_index": st.column_config.TextColumn("Username", width=100),
-            "Nome": st.column_config.TextColumn("Nome", width=130, required=True),
-            "Email": st.column_config.TextColumn("Email", width=170),
+            "_index": st.column_config.TextColumn("Username", width=90),
+            "Nome": st.column_config.TextColumn("Nome", width=115, required=True),
+            "Email": st.column_config.TextColumn("Email", width=200),
             "Profilo": st.column_config.SelectboxColumn(
-                "Profilo", options=list(utenti.RUOLI), required=True, width=95,
+                "Profilo", options=list(utenti.RUOLI), required=True, width=85,
                 help="lettore = consulta · caricatore = carica Excel e obiettivi · admin = tutto"),
             "Società": st.column_config.MultiselectColumn(
-                "Società", options=list(NOMI_SOCIETA), format_func=NOMI_SOCIETA.get, width=210,
+                "Società", options=list(NOMI_SOCIETA), format_func=NOMI_BREVI.get, width=185,
                 help="Tutte spuntate = tutto il gruppo"),
-            "Attivo": st.column_config.CheckboxColumn("Attivo", width=58,
+            "Attivo": st.column_config.CheckboxColumn("Attivo", width=52,
                                                       help="Disattivo = non può più entrare"),
-            "Accesso": st.column_config.TextColumn("Accesso", width=175),
+            "Accesso": st.column_config.TextColumn("Accesso", width=150),
         })
 
     modifiche, errori = [], []
@@ -179,12 +183,15 @@ with st.container(key="panel_link"):
                 unsafe_allow_html=True)
     _esito("ut_esito_link")
     attivi = [r for r in righe if r["attivo"]]
+    if modifiche:
+        st.info("Prima salva le modifiche della tabella «Utenti» (per esempio un'email appena "
+                "scritta): il link usa i dati salvati.")
     if attivi:
         c1, c2 = st.columns([2, 1], vertical_alignment="bottom")
         scelto = c1.selectbox("Utente", [r["username"] for r in attivi], key="ut_link_utente",
                               format_func=lambda u: f"{per_username[u]['nome'] or u} ({u})"
                                                     + ("" if per_username[u]["email"] else " · senza email"))
-        if c2.button("Invia nuovo link", key="ut_link_btn", width="stretch"):
+        if c2.button("Invia nuovo link", key="ut_link_btn", width="stretch", disabled=bool(modifiche)):
             r = per_username[scelto]
             try:
                 token, scade = utenti.nuovo_invito(scelto, io)
