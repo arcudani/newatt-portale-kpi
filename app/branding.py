@@ -250,9 +250,10 @@ MIGLIORA_CSS = """
         min-height:184px; height:100%; box-sizing:border-box; }
     .mg-k.pend { background:var(--mg-surface); border:1px dashed var(--mg-line-ph); }
     .mg-k-head { display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:nowrap;
-        gap:8px; min-height:32px; }
-    .mg-k-name { font-size:12px; line-height:16px; font-weight:700; letter-spacing:.06em;
-        text-transform:uppercase; color:var(--mg-mut); min-width:0; padding-top:2px; }
+        gap:8px; min-height:40px; }
+    /* nome del KPI: grande e in inchiostro pieno, si legge prima del bollino */
+    .mg-k-name { font-size:15px; line-height:20px; font-weight:800; letter-spacing:.03em;
+        text-transform:uppercase; color:var(--mg-ink); min-width:0; padding-top:1px; }
     .mg-st { display:inline-flex; align-items:center; gap:6px; padding:2px 8px; border-radius:999px;
         background:var(--sb); color:var(--sc); flex-shrink:0; font-size:11px; line-height:16px;
         font-weight:700; white-space:nowrap; }
@@ -779,8 +780,8 @@ def riquadro_kpi(vm: dict) -> str:
             cifra = ("<div style='display:flex;align-items:center;justify-content:space-between;"
                      "gap:12px;flex-wrap:wrap'>" + cifra +
                      "<div class='mg-k-side' style='text-align:right;padding:6px 0;margin-left:auto'>"
-                     "<div style='font-size:10.5px;font-weight:700;letter-spacing:.06em;"
-                     f"text-transform:uppercase;color:var(--mg-mut)'>{escape(etichetta)}</div>"
+                     "<div style='font-size:12.5px;line-height:16px;font-weight:800;letter-spacing:.03em;"
+                     f"text-transform:uppercase;color:var(--mg-ink)'>{escape(etichetta)}</div>"
                      "<div style='font-size:20px;line-height:1.15;font-weight:800;white-space:nowrap;"
                      f"color:var(--mg-ink)'>{escape(testo)}</div></div></div>")
         corpo.append(cifra)
