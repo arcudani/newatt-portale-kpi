@@ -39,6 +39,14 @@ branding.barra_portale()
 st.markdown(registro_moduli.css_wip(), unsafe_allow_html=True)
 branding.enable_altair_theme()
 
+if st.query_params.get("invito"):
+    # Link personale dell'email di invito: pagina pubblica per scegliere la
+    # password, prima (e al posto) del login. La nav resta chiamata una volta.
+    import accesso  # noqa: E402
+    st.navigation(registro_moduli.build_navigation("admin"), position="hidden")
+    accesso.pagina_invito(st.query_params["invito"])
+    st.stop()
+
 _gia_autenticato = bool(st.session_state.get("authentication_status"))
 if _gia_autenticato:
     _utente = st.session_state.get("utente_autenticato", "")

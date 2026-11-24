@@ -10,6 +10,8 @@ Sezioni della sidebar:
                          visibili solo alle società del perimetro dell'utente;
   * Dati               — caricamento dell'Excel mensile e obiettivi dei KPI
                          (admin, caricatore: Daniele e Virginia);
+  * Amministrazione    — utenti, profili e società visibili, inviti via
+                         email (solo admin);
   * Business Plan Migliora · 3″ / 30″ / 300″ — il Controllo BP Migliora
                          (viste V1-V11 + Catalogo), riservato agli admin.
 
@@ -32,6 +34,7 @@ SOLO_ADMIN = ("admin",)
 
 SEZ_GRUPPO = "Gruppo NeWatt"
 SEZ_DATI = "Dati"
+SEZ_ADMIN = "Amministrazione"
 SEZ_L3 = "BP Migliora · 3 secondi"
 SEZ_L30 = "BP Migliora · 30 secondi"
 SEZ_L300 = "BP Migliora · 300 secondi"
@@ -89,6 +92,9 @@ MODULI: list[Modulo] = [
     Modulo("moduli/obiettivi_kpi.py", "Obiettivi KPI", ":material/flag:", "OB",
            "Soglie obiettivo del semaforo per ogni KPI e società",
            url_path="obiettivi", sezione=SEZ_DATI, ruoli=CARICANO, wip=False),
+    Modulo("moduli/utenti_accessi.py", "Utenti e accessi", ":material/manage_accounts:", "US",
+           "Utenti, profili e società visibili; inviti di accesso via email",
+           url_path="utenti", sezione=SEZ_ADMIN, ruoli=SOLO_ADMIN, wip=False),
     # ---------------- Business Plan Migliora (solo admin) ----------------
     Modulo("moduli/cruscotto.py", "Cruscotto Direzione", ":material/speed:", "V1",
            "Il piano sta tenendo? I KPI di primo livello di Migliora",

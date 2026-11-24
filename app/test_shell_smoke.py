@@ -21,7 +21,7 @@ import registro_moduli
 
 def test_registro():
     codici = set(registro_moduli.PER_CODICE)
-    portale = {"G0", "LG", "LG2", "GZ", "GZ2", "MG", "MG2", "UP", "OB"}
+    portale = {"G0", "LG", "LG2", "GZ", "GZ2", "MG", "MG2", "UP", "OB", "US"}
     assert {f"V{i}" for i in range(1, 12)} | {"CAT"} | portale == codici
     assert registro_moduli.url_di(registro_moduli.PER_CODICE["G0"]) == "/"
     assert sum(m.default for m in registro_moduli.MODULI) == 1

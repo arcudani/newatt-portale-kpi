@@ -22,7 +22,13 @@ di ogni società (stessi KPI per tutte), caricato in app da admin e caricatori (
   I valori sono **year-to-date**: il valore del singolo mese dei flussi si ricava per differenza.
 - `ui_kpi.py` — dashboard di società (`pagina_societa`) e panoramica di gruppo (`panoramica`).
 - Login su `kpi_utenti` (`auth.py`): ruoli admin / caricatore / lettore, **perimetro** di società
-  (vuoto = tutto il gruppo); password con `imposta_pwd.py`. Il Business Plan Migliora (viste V1-V11 +
+  (vuoto = tutto il gruppo). Gli utenti si creano dalla pagina **Utenti e accessi** (solo admin,
+  `moduli/utenti_accessi.py` + `utenti.py`): l'utente nasce senza password e riceve un'email (Brevo
+  SMTP: `BREVO_LOGIN`, `BREVO_SMTP_KEY`, `MAIL_FROM`, link su `PORTALE_URL`) con username, società e un
+  link personale `/?invito=<token>` (monouso, 7 giorni, nel DB solo lo SHA-256: tabella `kpi_inviti`,
+  migrazione `kpi004`) dove sceglie la password (`accesso.py`, gestito in `app.py` PRIMA del login).
+  Senza SMTP configurato il link compare in pagina da consegnare a mano. `imposta_pwd.py` resta per
+  l'emergenza da riga di comando. Il Business Plan Migliora (viste V1-V11 +
   Catalogo, sotto) resta nel portale come sezione **solo admin**, nello stile Migliora, sui dati
   `bp_*` del progetto `bros-consulenza` (env `SUPABASE_DB_URL`).
 - Test del portale: `test_kpi.py` (Excel DASHBOARD fittizio in `dati_prova.workbook_kpi`).
